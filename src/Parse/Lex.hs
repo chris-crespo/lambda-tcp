@@ -1,21 +1,35 @@
-module Lex where
+module Parse.Lex (
+  lambda,
+  dot,
+  parens,
+  equals,
+  ident,
+) where
 
+import Ast
+import Control.Applicative (liftA2)
 import Parse.Core
 
-lambda :: Parser Char
+lambda :: Parser String
 lambda = backslash
 
-dot :: Parser Char
-dot = char '.'
+dot :: Parser String
+dot = symbol "."
 
-leftParen :: Parser Char
-leftParen = char '('
+parens :: Parser a -> Parser a
+parens p = leftParen *> p <* rightParen
 
-rightParen :: Parser Char
-rightParen = char ')'
+leftParen :: Parser String
+leftParen = symbol "("
 
-equals :: Parser Char
-equals = char '='
+rightParen :: Parser String
+rightParen = symbol ")"
 
-backslash :: Parser Char
-backslash = char '\\'
+equals :: Parser String
+equals = symbol "="
+
+backslash :: Parser String
+backslash = symbol "\\"
+
+ident :: Parser Ident
+ident = Ident <$> lexeme (liftA2 (:) alpha $ many alphaNum)
