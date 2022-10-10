@@ -2,22 +2,23 @@
 
 module TCP.Client (runClient) where
 
-import Control.Monad (forever)
-import Control.Monad.Extra (ifM, whenM)
+import Control.Monad (forever, unless)
+import Control.Monad.Extra (ifM)
 import qualified Data.ByteString.Char8 as B
 import Data.String (fromString)
 import Network.Simple.TCP
 import System.Exit (exitSuccess)
 import System.IO (BufferMode (..), hSetBuffering, isEOF, stdout)
+import TCP.Vars
 
 runClient :: IO ()
-runClient = connect "10.10.17.199" "9000" $ \(connectionSocket, remoteAddr) -> do
-  putStrLn $ "Connected to " ++ show remoteAddr
+runClient = connect host port $ \(connectionSocket, _) ->
   forever $ do
     prompt >>= \case
       Nothing -> disconnect connectionSocket
-      Just input -> send connectionSocket $ fromString input
-    recv connectionSocket 4096 >>= reportMsg
+      Just input -> unless (null input) $ do
+        send connectionSocket $ fromString input
+        recv connectionSocket msgSize >>= reportMsg
 
 prompt :: IO (Maybe String)
 prompt = do

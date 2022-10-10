@@ -7,7 +7,7 @@ module Parse.Lex (
 ) where
 
 import Ast
-import Control.Applicative (liftA2)
+import Control.Applicative ((<|>))
 import Parse.Core
 
 lambda :: Parser String
@@ -32,4 +32,7 @@ backslash :: Parser String
 backslash = symbol "\\"
 
 ident :: Parser Ident
-ident = Ident <$> lexeme (liftA2 (:) alpha $ many alphaNum)
+ident = Ident <$> lexeme (some $ alphaNum <|> question)
+
+question :: Parser Char
+question = char '?'

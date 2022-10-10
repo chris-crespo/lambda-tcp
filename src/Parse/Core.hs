@@ -5,6 +5,7 @@ module Parse.Core (
   ParseError (..),
   parse,
   string,
+  some,
   many,
   spaces,
   lexeme,
@@ -28,15 +29,17 @@ import Utils (backticks)
 
 type Parser a = ExceptT ParseError (State String) a
 
--- TODO: parse should not return rest of the string
-parse :: Parser a -> String -> (Either ParseError a, String)
-parse parser = runIdentity . runStateT (runExceptT parser)
+parse :: Parser a -> String -> Either ParseError a
+parse parser = fst . runParser parser
 
 runParser :: Parser a -> String -> (Either ParseError a, String)
 runParser parser = runIdentity . runStateT (runExceptT parser)
 
 string :: String -> Parser String
 string = traverse char
+
+some :: Parser a -> Parser [a]
+some p = liftA2 (:) p (many p)
 
 many :: Parser a -> Parser [a]
 many p = liftA2 (:) p (many p) <|> return []
@@ -72,7 +75,7 @@ label str p = flip withExceptT p $ \case
 
 try :: Parser a -> Parser a
 try p =
-  get >>= \input -> case parse p input of
+  get >>= \input -> case runParser p input of
     (Left err, _) -> put input >> throwError err
     (Right value, input') -> put input' >> return value
 

@@ -9,6 +9,6 @@ import System.Environment
 main :: IO ()
 main =
   getArgs >>= \case
-    ["tcp", "client"] -> runClient
-    ["tcp", "server"] -> runServer
+    ["client"] -> runClient
+    ["server"] -> runServer
     _ -> putStrLn "Usage: lambda-tcp [client|server]"
